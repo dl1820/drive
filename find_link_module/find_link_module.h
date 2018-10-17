@@ -99,11 +99,6 @@ now_location gps(float lat, float lon, int hd)
 	while(row = mysql_fetch_row(d.gps))
 	{
 		int l;
-//		for(int i = 0; i < d.num; i++)
-//		{
-//			printf("%s  ", row[i] ? row[i] : "NULL");
-//		}
-//		printf("\n");
     	if( j%2 == 0){
 			latlon[0] = atof(row[2]);
 			latlon[1] = atof(row[3]);
@@ -122,7 +117,6 @@ now_location gps(float lat, float lon, int hd)
 		}
 		j++;
 	}
-
 
 	int hd_cnt = 0;
 	for(int i = 0; i < 4; i++){
