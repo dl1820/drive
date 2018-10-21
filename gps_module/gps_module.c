@@ -11,17 +11,17 @@
 #define CHOP(x) x[strlen(x) - 1] = ""
 
 typedef struct _data{
-    MYSQL_RES * gps;
+    MYSQL_RES * real_gps;
     int num;
 } data;
 
 void finish_with_error(MYSQL *conn);
-data gps(float lat, float lon);
+data real_gps(char nodes[]);
 data mysql_select(MYSQL *, char query[]);
 
 int main(void)
 {
-	data d = gps(35.83822323703652, 128.6822692526684);
+	data d = real_gps("155M10640204 155M10720204");
 	MYSQL_ROW row;
 	return 0;	
 }
@@ -33,16 +33,17 @@ void finish_with_error(MYSQL *conn)
     exit(1);
 }
 
-data gps(float lat, float lon)
+data real_gps(char nodes[])
 {
-    char query[1024];
-	char query2[1024] = "select hdufid,fromnode, tonode from a3_link where hdufid = ";
-	char query3[1024] = "select * from gps where ono = ";
-	int tri[4];
-	double latlon[4];
-    sprintf(query, "SELECT id , MIN(6371*acos(cos(radians(%0.7f))*cos(radians(gps.lat))*cos(radians(gps.lon) - radians(%0.7f)) + sin(radians(%0.7f))*sin(radians(gps.lat)))) AS distance , lat, lon FROM gps where id like 'A3%%' and lat < 35.839 and lat > 35.837 and lon < 128.683 and lon > 128.681 group by id order by distance limit 4;", lat, lon, lat);
+	char query[1024] = "select linkid from a3_link where tonode = ";
 
     MYSQL *conn = mysql_init(NULL);
+
+	char *ptr = strtok(nodes, " ");
+	while(ptr != NULL){
+		printf("%s\n", ptr);
+		ptr = strtok(NULL, " ");
+	}
 
     if( conn == NULL)
     {
@@ -54,22 +55,13 @@ data gps(float lat, float lon)
     {
         finish_with_error(conn);
     }
-    
+    /***
+	sprintf(query, "%s'%s'", query, )
+
     MYSQL_ROW row;
 	data d = mysql_select(conn,query);
 	
-	for(int i = 0; i < 4; i++){
-		row = mysql_fetch_row(d.gps);
-		if(i == 3){
-			sprintf(query2, "%s'%s'", query2, row[0]);		
-		} else {
-			sprintf(query2, "%s'%s' or hdufid = ", query2, row[0]);
-		}
-	}
-
-	d = mysql_select(conn, query2);
-	int a = 0;
-	while(row = mysql_fetch_row(d.gps))
+	while(row = mysql_fetch_row(d.real_gps))
 	{
 		if(a == 3){
 			sprintf(query3, "%s'%s' or ono = ", query3, row[1]);
@@ -78,35 +70,9 @@ data gps(float lat, float lon)
 			sprintf(query3, "%s'%s' or ono = ", query3, row[1]);
 			sprintf(query3, "%s'%s' or ono = ", query3, row[2]);
 		}
-
-//		for(int i = 0; i < d.num; i++)
-//       {
-//			printf("%s  ", row[i] ? row[i] : "NULL");
-//        }
-//       printf("\n");
 		a++;
     }
-//	printf("%s\n", query3);
-	d = mysql_select(conn, query3);
-	
-	int j = 0;
-	int tri_index = 0;
-
-	while(row = mysql_fetch_row(d.gps))
-	{
-    	if( j%2 == 0){
-			latlon[0] = atof(row[2]);
-			latlon[1] = atof(row[3]);
-		} else{
-			latlon[2] = atof(row[2]);
-			latlon[3] = atof(row[3]);
-			tri[tri_index] = bearingG1toG2(latlon[0], latlon[1], latlon[2],latlon[3]);
-			printf("%d\n", tri[tri_index]);
-			tri_index++;
-		}
-		j++;
-	}
-
+	***/
     mysql_close(conn);
     return d;
 }
